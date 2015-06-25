@@ -1,6 +1,6 @@
-from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_save
-from django.core.cache import get_cache
+from django.core.cache.backends.base import InvalidCacheBackendError
+from django.core.cache import caches
 
 try:
     from django.core.cache.backends.locmem import LocMemCache
@@ -25,9 +25,9 @@ class DatabaseBackend(Backend):
                 "correctly. Make sure it's in your INSTALLED_APPS setting.")
 
         if settings.DATABASE_CACHE_BACKEND:
-            self._cache = get_cache(settings.DATABASE_CACHE_BACKEND)
+            self._cache = caches[settings.DATABASE_CACHE_BACKEND]
             if isinstance(self._cache, LocMemCache):
-                raise ImproperlyConfigured(
+                raise InvalidCacheBackendError(
                     "The CONSTANCE_DATABASE_CACHE_BACKEND setting refers to a "
                     "subclass of Django's local-memory backend (%r). Please set "
                     "it to a backend that supports cross-process caching."
